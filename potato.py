@@ -90,13 +90,13 @@ fig.update_layout(
         zoom=4.5
     ))
 
-pga_dist_scat = px.scatter(df[0:100], x = 'Epic. Dist.(km)', y = 'max pga')
+pga_dist_scat = px.scatter(x = [0], y = [0])
 pga_dist_scat.update_layout(
     height = 450,
     hovermode='closest',
     margin = dict(l = 0, r = 0, t = 0, b = 0))
 
-polar_plot = px.scatter_polar(df[0:100], r = 'Epic. Dist.(km)', theta = "bearing", size = 'max pga')
+polar_plot = px.scatter_polar(r = [0], theta = [0], size = [0])
 polar_plot.update_layout(
     height = 450,
     hovermode='closest',
@@ -134,9 +134,8 @@ app.layout = html.Div([
 
 
 
-@app.callback([
+@app.callback(
     Output('mapbox2', 'figure'),
-    Output('scat', 'figure')],
     [Input('mapbox', 'clickData')])
 def plot_basin(selection):
     if selection is None:
@@ -175,6 +174,47 @@ def plot_basin(selection):
                 zoom=4.5 ))
 
         return {'data': data, 'layout': layout}
+
+@app.callback(
+    Output('polar', 'figure'),
+    [Input('mapbox', 'clickData')])
+def plot_basin(selection):
+    if selection is None:
+        return polar_plot
+    else:
+        epic_dis = fetch_strong(selection['points'][0]['text'], df)["Epic. Dist.(km)"]
+        bearing = fetch_strong(selection['points'][0]['text'], df)["bearing"]
+        max_pga = fetch_strong(selection['points'][0]['text'], df)["max pga"]
+        polar_plot_u = go.Figure(data = go.Scatterpolar(r=epic_dis,
+                                                        theta=bearing,
+                                                        mode = 'markers',
+                                                        marker = dict(size = [(i * 600000) **0.5 for i in max_pga],
+                                                                      sizemode = 'area',
+                                                                      )))
+
+        polar_plot_u.update_layout(
+            height=450,
+            hovermode='closest',
+            margin=dict(l=0, r=0, t=0, b=0))
+        return polar_plot_u
+
+@app.callback(
+    Output('scat', 'figure'),
+    [Input('mapbox', 'clickData')])
+def plot_basin(selection):
+    if selection is None:
+        return pga_dist_scat
+    else:
+        epic_dis = fetch_strong(selection['points'][0]['text'], df)["Epic. Dist.(km)"]
+        max_pga = fetch_strong(selection['points'][0]['text'], df)["max pga"]
+        pga_dist_scat_u = px.scatter(x = epic_dis, y = max_pga, log_y=True)
+        pga_dist_scat_u.update_layout(
+            xaxis_title = "pga (log scale)",
+            yaxis_title = "Distace from epicentre",
+            height=450,
+            hovermode='closest',
+            margin=dict(l=0, r=0, t=0, b=0))
+        return pga_dist_scat_u
 
 if __name__ == "__main__":
     app.run_server(debug=True)

@@ -20,6 +20,7 @@ list_of_events = []
 for i in range(2015, 2020):
     list_of_events.append(get_csv_name(i))
 
+print(list_of_events)
 #print(list_of_events)
 
 def get_csv(event):
@@ -27,12 +28,13 @@ def get_csv(event):
     return csv
 #print(list_of_events[0])
 list_of_csvs = []
-for pull in list_of_events[0]:
-    list_of_csvs.append(get_csv(pull))
+for pull in list_of_events:
+    for events in pull:
+        list_of_csvs.append(get_csv(events))
 
 big_csv = pd.concat(list_of_csvs)
 print(big_csv)
-big_csv.to_csv("all_quakes.csv")
+big_csv.to_csv("all_quakes_2015-2020.csv")
 
 """df = get_csv_name(2020)
 
